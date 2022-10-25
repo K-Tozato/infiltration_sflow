@@ -63,7 +63,7 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
   設定した時間間隔で結果も出力    
   Results are output at set time intervals. 
 
- - coordinate_rain.txt   
+ - **coordinate_rain.txt**   
   降水量の座標データ: Coordinates for rainfall data  
   
 
@@ -76,7 +76,7 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
  | nx, ny   | -      | -      | x,y方向の節点数，途中から要素数を表現 (Number of nodes for x and y direction, Express the number of elements from the middle of the code.) |   
  | xx (yy)  | nx (ny) | [m]   | x,y方向の座標 (Coordinates for x and t direction)   |   
  | gl       | nx×ny   | [m]   | 標高値の行列 (A matrix of elevation data)           |   
- | dx, dy   | -       | [m]   | x,y方向の解像度(m)                                  |   
+ | dx, dy   | -       | [m]   | x,y方向の解像度 (Resolution of x and y direction)   |   
  | nti      | -       | -     | 計算の総時間ステップ数 (Number of total time steps)  |   
  | tstep    | -       | -     | 時間ステップ数 (Number of time steps)               |    
  | dti      | -       | [s]   | 降雨データの時間間隔(出力値の時間間隔) (Time intervals for rainfall data) |    
@@ -102,7 +102,7 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
  | thi, ths | -      | [-]    | 初期(飽和)体積含水率 (Initial and saturated volumatric water content) |    
  | psi      | -      | [m]    | Suction Head at Wetting front     |    
  | fn       | nx×ny  | [m]    | ある時間での累積浸透量 (Cumurative infiltration)          |    
- | zzn      | nx×ny  | [m]    | 鉛直方向の浸透深さ (Vertical depth of the wetting front   |    
+ | zzn      | nx×ny  | [m]    | 鉛直方向の浸透深さ (Vertical depth of the wetting front)  |    
 
 
  - **地表流解析 (Variables for surface flow analysis)**     
@@ -124,15 +124,21 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
   
  シングル計算: Single calculation    
 
- > gfortran infil_sflow.f90 -o run    
+ ```
+ gfortran infil_sflow.f90 -o run    
+ ```
 
  並列化(OpenMP): Parallelization   
 
- > gfortran -fopenmp infil_sflow.f90 -o run 
+ ```
+ gfortran -fopenmp infil_sflow.f90 -o run 
+ ```
 
  - 実行: Running      
 
- > ./run    
+ ```
+ ./run    
+ ```
 
 ## 出力データ: Output data   
  

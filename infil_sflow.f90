@@ -12,7 +12,7 @@ end module
 
 module inp_data
   integer :: fl 
-  double precision :: k0, thi, ths, psi, nn
+  double precision, allocatable :: k0(:,:), thi(:,:), ths(:,:), psi(:,:), nn(:,:)
   double precision, allocatable :: rain(:,:), qin(:,:), ax(:,:), ay(:,:), slp(:,:), raint(:), nrain(:)
   integer, allocatable :: rid(:,:)
 end module
@@ -90,31 +90,31 @@ character(100) :: fname, fname1
 open(11,file='./input/num_node.txt',status='old')
 read(11,*) nx
 read(11,*) ny
+read(11,*) fl
 close(11)
 
 allocate(xx(nx), yy(ny), gl(nx,ny))
 allocate(hs(nx-1,ny-1), hsn(nx-1,ny-1), hmx(nx-1,ny-1), zz(nx-1,ny-1), zzn(nx-1,ny-1), fn(nx-1,ny-1))
 allocate(ax(nx,ny-1), ay(nx-1,ny), qin(nx-1,ny-1), slp(nx-1,ny-1))
+allocate(k0(nx,ny),psi(nx,ny),thi(nx,ny),ths(nx,ny),nn(nx,ny))
 
 open(11,file='./input/coordinate.txt',status='old')
+open(12,file='./input/input_par.txt',status='old')
 i = 0 ; j = 1
 do k = 1, nx*ny
   i = i + 1
   read(11,*) xx(i), yy(j), gl(i,j)
+  read(12,*) k0(i,j), psi(i,j), thi(i,j), ths(i,j), nn(i,j)
   if(i==nx) then
     i = 0
     j = j + 1
   endif
 end do
 close(11)
+close(12)
 dx = xx(2) - xx(1)
 dy = yy(2) - yy(1)
 
-open(11,file='./input/input_par.txt',status='old')
-read(11,*) k0, psi
-read(11,*) thi, ths
-read(11,*) nn, fl
-close(11)
 hs(:,:) = 0.d0
 zz(:,:) = 0.d0 ; zzn(:,:) = 0.d0
 
@@ -246,9 +246,9 @@ do j = 1,ny
     ! Green Ampt  - - - - - - - - - - - - - - - - - - -
     rr = raint(rid(i,j))
     if(fn(i,j) .ne. 0) then
-      ff = k0*(dcos(slp(i,j))+psi*(ths-thi)/fn(i,j))
+      ff = k0(i,j)*(dcos(slp(i,j))+psi(i,j)*(ths(i,j)-thi(i,j))/fn(i,j))
     else
-      ff = k0*100.d0
+      ff = k0(i,j)*100.d0
     end if
     qin(i,j) = rr - min(rr+hs(i,j)/dt,ff)
 
@@ -259,16 +259,16 @@ do j = 1,ny
       fo = fn(i,j)
       f1 = fn(i,j)
       do k = 1,100000
-        vv(1) = f1 - fo - k0*dcos(slp(i,j))*dt - psi*(ths-thi)/dcos(slp(i,j)) &
-                * dlog((f1*dcos(slp(i,j))+psi*(ths-thi))/(fo*dcos(slp(i,j))+psi*(ths-thi)))
-        vv(2) = 1 - psi*(ths-thi)/(f1*dcos(slp(i,j))+psi*(ths-thi))
+        vv(1) = f1 - fo - k0(i,j)*dcos(slp(i,j))*dt - psi(i,j)*(ths(i,j)-thi(i,j))/dcos(slp(i,j)) &
+              *dlog((f1*dcos(slp(i,j))+psi(i,j)*(ths(i,j)-thi(i,j)))/(fo*dcos(slp(i,j))+psi(i,j)*(ths(i,j)-thi(i,j))))
+        vv(2) = 1 - psi(i,j)*(ths(i,j)-thi(i,j))/(f1*dcos(slp(i,j))+psi(i,j)*(ths(i,j)-thi(i,j)))
         fnn = f1 - vv(1)/vv(2)
         if((fnn-f1)/f1 < 1.0d-6) exit
         f1 = fnn
       end do
       fn(i,j) = fnn
     end if
-    zzn(i,j) = fnn/(ths-thi)/dcos(slp(i,j))
+    zzn(i,j) = fnn/(ths(i,j)-thi(i,j))/dcos(slp(i,j))
     ! - - - - - - - - - - - - - - - - - - - - - - - -      
     
     if(fl==1) wout = wout + qin(i,j)*dt
@@ -294,8 +294,8 @@ do j = 1,ny
         if(hh*grad(2)<0.d0 .or. hs(i+1,j)*grad(2)>0.d0) h2 = 0.5d0*(hh + hs(i+1,j))
       end if
    
-      qsx(1) = - (h1**(5.d0/3.d0))*dsign(1.d0,grad(1))*dsqrt(dabs(grad(1)))/nn  
-      qsx(2) = - (h2**(5.d0/3.d0))*dsign(1.d0,grad(2))*dsqrt(dabs(grad(2)))/nn
+      qsx(1) = - (h1**(5.d0/3.d0))*dsign(1.d0,grad(1))*dsqrt(dabs(grad(1)))/nn(i,j)  
+      qsx(2) = - (h2**(5.d0/3.d0))*dsign(1.d0,grad(2))*dsqrt(dabs(grad(2)))/nn(i,j)
   
       h1 = 0.d0 ; h2 = 0.d0 ; qsy(:) = 0.d0
       if(j==1) then
@@ -315,8 +315,8 @@ do j = 1,ny
         if(hh*grad(2)<0.d0 .or. hs(i,j+1)*grad(2)>0.d0) h2 = 0.5d0*(hh + hs(i,j+1))
       end if
  
-      qsy(1) = - (h1**(5.d0/3.d0))*dsign(1.d0,grad(1))*dsqrt(dabs(grad(1)))/nn
-      qsy(2) = - (h2**(5.d0/3.d0))*dsign(1.d0,grad(2))*dsqrt(dabs(grad(2)))/nn
+      qsy(1) = - (h1**(5.d0/3.d0))*dsign(1.d0,grad(1))*dsqrt(dabs(grad(1)))/nn(i,j)
+      qsy(2) = - (h2**(5.d0/3.d0))*dsign(1.d0,grad(2))*dsqrt(dabs(grad(2)))/nn(i,j)
    
       if(i == 1 ) qsx(1) = min(qsx(1),0.d0)
       if(i == nx) qsx(2) = max(qsx(2),0.d0)
@@ -371,7 +371,7 @@ do j = 1,ny
       if(hsn(i,j)*hsn(i+1,j)>1.d-16) then
         h1 = hsn(i,j) ; h2 = hsn(i+1,j)
         grad(1) = dsqrt(dabs(h2-h1))/dx
-        if(dabs(ax(i+1,j))>ang)  dt2 = min(dt2, (dx**2.d0)*0.5d0*grad(1)*nn/((h1+h2)*0.5d0)**(5.d0/3.d0))
+        if(dabs(ax(i+1,j))>ang)  dt2 = min(dt2, (dx**2.d0)*0.5d0*grad(1)*nn(i,j)/((h1+h2)*0.5d0)**(5.d0/3.d0))
         if(dabs(ax(i+1,j))<=ang) dt3 = min(dt3, 0.7d0*dx/dsqrt(gg*(h1+h2)*0.5d0))
       end if
     end if
@@ -379,12 +379,12 @@ do j = 1,ny
       if(hsn(i,j)*hsn(i,j+1)>1.d-16) then
         h1 = hsn(i,j) ; h2 = hsn(i,j+1)
         grad(1) = dsqrt(dabs(h2-h1))/dy
-        if(dabs(ay(i,j+1))>ang)  dt2 = min(dt2, (dy**2.d0)*0.5d0*grad(1)*nn/((h1+h2)*0.5d0)**(5.d0/3.d0))
+        if(dabs(ay(i,j+1))>ang)  dt2 = min(dt2, (dy**2.d0)*0.5d0*grad(1)*nn(i,j)/((h1+h2)*0.5d0)**(5.d0/3.d0))
         if(dabs(ay(i,j+1))<=ang) dt3 = min(dt3, 0.7d0*dy/dsqrt(gg*(h1+h2)*0.5d0))
       end if
     end if
 
-    ww(1) = ww(1) + hsn(i,j) + zzn(i,j)*(ths-thi)*dcos(slp(i,j))
+    ww(1) = ww(1) + hsn(i,j) + zzn(i,j)*(ths(i,j)-thi(i,j))*dcos(slp(i,j))
   end do
 end do
 !$OMP end do  

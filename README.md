@@ -38,15 +38,18 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
 
  - **num_node.txt**   
   x,y方向の節点数: Number of nodes for x and y directions    
-
+  地表流解析の実施有無(1:地表流計算なし, 2:あり):   
+  Flag for surface flow analysis (1: only infiltration analysis are performed. 2: infiltration and surface flow analysis are performed. )   
+ 
  - **inp_par.txt**   
-  解析パラメータのデータを格納（空間的に一様なものとして仮定）   
-  Values of analysis parameters  (Assumed as spatially uniform)    
-  1行目(First row) ：飽和透水係数(Saturated hydraulic conductivity) (m/s)，Suction head at Wetting front (m)   
-  2行目(Second row)：初期体積含水率，飽和体積含水率(Initial and saturated volumetric water content)   
-  3行目(Third row) ：マニングの粗度係数 (s/m^(1/3))，地表流解析の実施有無(1:地表流計算なし, 2:あり)     
-  Third row: Manning's roughness coefficient and 
-  Flag for surface flow analysis (1: only infiltration analysis are performed. 2: infiltration and surface flow analysis are performed. )
+  解析パラメータのデータを格納（座標データと同じ行数のデータ）   
+  Values of analysis parameters  (Same number of rows as coordinate data)    
+  
+  1列目：飽和透水係数(Saturated hydraulic conductivity) (m/s)    
+  2列目：Suction head at Wetting front (m)     
+  3列目：初期体積含水率 (Initial volumetric water content) (-)    
+  4列目：飽和体積含水率 (Saturated volumetric water content) (-)    
+  5列目：マニングの粗度係数 (Manning's roughness coefficient) (s/m^(1/3))     
 
 
 ### raindata/: 降雨データ(Rainfall data)
@@ -98,9 +101,9 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
 
  | 変数名(Variable name) | 次元(Dimension) |単位(Unit) | 説明(Description)        |   
  | :------: | :----: | :----: | :-------------                                   |   
- | k0       | -      | [m/s]  | 飽和透水係数 (Saturated hydraulic conductivity)   |    
- | thi, ths | -      | [-]    | 初期(飽和)体積含水率 (Initial and saturated volumatric water content) |    
- | psi      | -      | [m]    | Suction Head at Wetting front     |    
+ | k0       | nx×ny  | [m/s]  | 飽和透水係数 (Saturated hydraulic conductivity)   |    
+ | thi, ths | nx×ny  | [-]    | 初期(飽和)体積含水率 (Initial and saturated volumatric water content) |    
+ | psi      | nx×ny  | [m]    | Suction Head at Wetting front     |    
  | fn       | nx×ny  | [m]    | ある時間での累積浸透量 (Cumurative infiltration)          |    
  | zzn      | nx×ny  | [m]    | 鉛直方向の浸透深さ (Vertical depth of the wetting front)  |    
 
@@ -110,7 +113,7 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
  | 変数名(Variable name) | 次元(Dimension) |単位(Unit) | 説明(Description)           |   
  | :------: | :----: | :----:      | :-------------                            |   
  | qsx,qsy  | 2      | [m^2/s]     | x(y)方向の単位幅流量 (Unit width flow rate for x and y direction)   |    
- | nn       | -      | [s/m^(1/3)] | マニングの粗度係数 (Manning's roughness coefficient)      |    
+ | nn       | nx×ny  | [s/m^(1/3)] | マニングの粗度係数 (Manning's roughness coefficient)      |    
  | hsn      | nx×ny  | [m]         | 地表水位 (Surface flow level)                            |    
  | hmx      | nx×ny  | [m]         | 地表水位の最大値 (Maximum surface flow level)             |    
 

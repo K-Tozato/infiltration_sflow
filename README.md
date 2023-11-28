@@ -41,7 +41,7 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
   地表流解析の実施有無(1:地表流計算なし, 2:あり):   
   Flag for surface flow analysis (1: only infiltration analysis are performed. 2: infiltration and surface flow analysis are performed. )   
  
- - **inp_par.txt**   
+ - **parameter_infil.txt**   
   解析パラメータのデータを格納（座標データと同じ行数のデータ）   
   Values of analysis parameters  (Same number of rows as coordinate data)    
   1列目：飽和透水係数(Saturated hydraulic conductivity) (m/s)    

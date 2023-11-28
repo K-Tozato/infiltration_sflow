@@ -99,7 +99,7 @@ allocate(ax(nx,ny-1), ay(nx-1,ny), qin(nx-1,ny-1), slp(nx-1,ny-1))
 allocate(k0(nx,ny),psi(nx,ny),thi(nx,ny),ths(nx,ny),nn(nx,ny))
 
 open(11,file='./input/coordinate.txt',status='old')
-open(12,file='./input/input_par.txt',status='old')
+open(12,file='./input/parameter_infil.txt',status='old')
 i = 0 ; j = 1
 do k = 1, nx*ny
   i = i + 1
@@ -409,7 +409,7 @@ write(fname,'(a,i4.4,a4)') trim(adjustl(fname1)),tstep,'.txt'
 open(12, file=fname, status='replace')
 do j = 1,ny
   do i = 1,nx
-    write(12,*) real(xx(i)), real(yy(j)), real(zzn(i,j)), real(max(hs(i,j),0.d0))
+    write(12,'(2f10.2,2f8.5)') xx(i), yy(j), zzn(i,j), max(hs(i,j),0.d0)
   end do
 end do
 close(12)

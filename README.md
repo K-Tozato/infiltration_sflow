@@ -51,6 +51,19 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
   4列目：飽和体積含水率 (Saturated volumetric water content) (-)    
   5列目：マニングの粗度係数 (Manning's roughness coefficient) (s/m^(1/3))     
 
+- **category.txt**
+各位置(x,y,z)での土質分類番号が並ぶデータ．
+行方向に水平座標（x,y），列方向に各深さの分類が並ぶ形となる．
+要素値として読み込むので，データ数は(nx-1)×(ny-1)となる．
+
+解析パラメータは，以下の図のように3次元的な座標で表現され，各位置での分類番号がcaregory.txtに格納されている．   
+各分類番号の具体的な値のリストが，parameter_infil.txtとなる．
+
+<img src="./img/category_image.png" width="35%">
+
+
+
+
   (※) 深さ方向にパラメータが変化する設定にしているが，解析モデルの関係上，計算では深さ2m地点でのパラメータ値を代表値として使用して計算．   
   (※) 深さ方向のパラメータの変化は[斜面安定解析](https://github.com/K-Tozato/3D_slope_stability)で使用される．
 

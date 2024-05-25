@@ -37,12 +37,13 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
   <img src="./img/coordinate.png" width="40%">
 
  - **num_node.txt**   
-  x,y方向の節点数: Number of nodes for x and y directions    
-  地表流解析の実施有無(1:地表流計算なし, 2:あり):   
+  1行目：x,y方向の節点数(nx,ny): Number of nodes for x and y directions    
+  2行目：深さ方向のパラメータのデータ数(nz)，その解像度(dz)   
+  3行目：土質分類数(nc)，地表流解析の実施有無(1:地表流計算なし, 2:あり)   
   Flag for surface flow analysis (1: only infiltration analysis are performed. 2: infiltration and surface flow analysis are performed. )   
  
  - **parameter_infil.txt**   
-  解析パラメータのデータを格納（座標データと同じ行数のデータ）   
+  解析パラメータのリスト．それぞれの行に各分類のパラメータが並ぶ形となる．   
   Values of analysis parameters  (Same number of rows as coordinate data)    
   1列目：飽和透水係数(Saturated hydraulic conductivity) (m/s)    
   2列目：Suction head at Wetting front (m)     
@@ -50,6 +51,8 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
   4列目：飽和体積含水率 (Saturated volumetric water content) (-)    
   5列目：マニングの粗度係数 (Manning's roughness coefficient) (s/m^(1/3))     
 
+  (※) 深さ方向にパラメータが変化する設定にしているが，解析モデルの関係上，計算では深さ2m地点でのパラメータ値を代表値として使用して計算．   
+  (※) 深さ方向のパラメータの変化は[斜面安定解析](https://github.com/K-Tozato/3D_slope_stability)で使用される．
 
 ### raindata/: 降雨データ(Rainfall data)
 
@@ -95,16 +98,27 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
  | raint    | nr     | [m/s]  | ある時間での降水量 (Precipitation at a certain time)             |    
  | rid      | nx×ny  | -      | 各計算点が参照する降水量データの番号 (Number for precipitation data to which each calculation point refers) |   
 
+ - **入力パラメータ(土質分類)**
+
+ | 変数名(Variable name) | 次元(Dimension) |単位(Unit) | 説明(Description)           |   
+ | :------: | :----: | :----: | :-------------                            |   
+ | ctg       | nx×ny×nz   | -      | 各座標での分類の番号 |   
+ | nz     | - | -  | 深さ方向のデータ数  |   
+ | nc     | - | -  | 土質の分類数  |   
+
+
+
+
 
  - **浸透解析 (Variables for infiltration analysis)**     
 
  | 変数名(Variable name) | 次元(Dimension) |単位(Unit) | 説明(Description)        |   
  | :------: | :----: | :----: | :-------------                                   |   
- | k0       | nx×ny  | [m/s]  | 飽和透水係数 (Saturated hydraulic conductivity)   |    
- | thi, ths | nx×ny  | [-]    | 初期(飽和)体積含水率 (Initial and saturated volumatric water content) |    
- | psi      | nx×ny  | [m]    | Suction Head at Wetting front     |    
- | fn       | nx×ny  | [m]    | ある時間での累積浸透量 (Cumurative infiltration)          |    
- | zzn      | nx×ny  | [m]    | 鉛直方向の浸透深さ (Vertical depth of the wetting front)  |    
+ | k0       | nc  | [m/s]  | 飽和透水係数 (Saturated hydraulic conductivity)   |    
+ | thi, ths | nc  | [-]    | 初期(飽和)体積含水率 (Initial and saturated volumatric water content) |    
+ | psi      | nc  | [m]    | Suction Head at Wetting front     |    
+ | fn       | nc  | [m]    | ある時間での累積浸透量 (Cumurative infiltration)          |    
+ | zzn      | nc  | [m]    | 鉛直方向の浸透深さ (Vertical depth of the wetting front)  |    
 
 
  - **地表流解析 (Variables for surface flow analysis)**     
@@ -112,7 +126,7 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
  | 変数名(Variable name) | 次元(Dimension) |単位(Unit) | 説明(Description)           |   
  | :------: | :----: | :----:      | :-------------                            |   
  | qsx,qsy  | 2      | [m^2/s]     | x(y)方向の単位幅流量 (Unit width flow rate for x and y direction)   |    
- | nn       | nx×ny  | [s/m^(1/3)] | マニングの粗度係数 (Manning's roughness coefficient)      |    
+ | nn       | nc  | [s/m^(1/3)] | マニングの粗度係数 (Manning's roughness coefficient)      |    
  | hsn      | nx×ny  | [m]         | 地表水位 (Surface flow level)                            |    
  | hmx      | nx×ny  | [m]         | 地表水位の最大値 (Maximum surface flow level)             |    
 

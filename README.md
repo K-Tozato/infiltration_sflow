@@ -40,7 +40,8 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
   1行目：x,y方向の節点数(nx,ny): Number of nodes for x and y directions    
   2行目：深さ方向のパラメータのデータ数(nz)，その解像度(dz)   
   3行目：土質分類数(nc)，地表流解析の実施有無(1:地表流計算なし, 2:あり)   
-  Flag for surface flow analysis (1: only infiltration analysis are performed. 2: infiltration and surface flow analysis are performed. )   
+  Flag for surface flow analysis (1: only infiltration analysis are performed. 2: infiltration and surface flow analysis are performed. )    
+  4行目：ダミーデータ（[斜面安定解析](https://github.com/K-Tozato/3D_slope_stability)のパラメータ）
  
  - **parameter_infil.txt**   
   解析パラメータのリスト．それぞれの行に各分類のパラメータが並ぶ形となる．   

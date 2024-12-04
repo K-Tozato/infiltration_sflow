@@ -11,10 +11,10 @@ module time
 end module
 
 module inp_data
-  integer :: fl, nc 
+  integer :: fl, nc, nlu 
   double precision, allocatable :: k0(:), thi(:), ths(:), psi(:), nn(:)
   double precision, allocatable :: rain(:,:), qin(:,:), ax(:,:), ay(:,:), slp(:,:), raint(:), nrain(:)
-  integer, allocatable :: ctg(:,:,:), rid(:,:)
+  integer, allocatable :: ctg(:,:,:), rid(:,:), luse(:,:)
 end module
 
 module solve_data
@@ -65,9 +65,9 @@ do
 
   call flow
   if(dts >= dble(tstep)*dti) then
-    write(*,'(a,f7.4)') "dt : ", dt
-    write(*,'(a,2f12.3)') "ww : ", ww(1), ww(2)
-    write(*,'(a,f12.3,a)') "error : ", (ww(1) - ww(2))/ww(2)*100.d0, "%"
+    write(*,'(a,f7.2)') "dt : ", dt
+    write(*,'(a,2f15.3)') "ww : ", ww(1), ww(2)
+    write(*,'(a,f15.3,a)') "error : ", (ww(1) - ww(2))/ww(2)*100.d0, "%"
     write(*,*) "- - - - - - - - - - - - - - - - - "
     tt = 0
     call data_out
@@ -85,27 +85,34 @@ use time, only : dt, ww, nti
 use solve_data
 use inp_data
 implicit none
-integer :: i, j, k, l
+integer :: i, j, k, l, nluse
 double precision :: aa
 character(100) :: fname, fname1
 open(11,file='./input/num_node.txt',status='old')
 read(11,*) nx, ny
 read(11,*) nz, dz
 read(11,*) nc, fl 
+read(11,*) nlu, aa
 close(11)
 
 allocate(xx(nx), yy(ny), gl(nx,ny))
 allocate(hs(nx-1,ny-1), hsn(nx-1,ny-1), hmx(nx-1,ny-1), zz(nx-1,ny-1), zzn(nx-1,ny-1), fn(nx-1,ny-1))
 allocate(ax(nx,ny-1), ay(nx-1,ny), qin(nx-1,ny-1), slp(nx-1,ny-1))
-allocate(k0(nc),psi(nc),thi(nc),ths(nc),nn(nc),ctg(nx-1, ny-1, nz))
+allocate(k0(nc),psi(nc),thi(nc),ths(nc),nn(nlu),ctg(nx-1, ny-1, nz), luse(nx-1,ny-1))
+nn(:) = 0.05
 
+nluse = access("./input/landuse.txt"," ")
 open(11,file='./input/coordinate.txt',status='old')
 open(12,file='./input/category.txt',status='old')
+if(nluse==0) open(13,file='./input/landuse.txt',status='old')
 i = 0 ; j = 1
 do k = 1, nx*ny
   i = i + 1
   read(11,*) xx(i), yy(j), gl(i,j)
   if(i<nx .and. j<ny) read(12,*) (ctg(i,j,l), l = 1,nz)
+  if(i<nx .and. j<ny .and. nluse==0) then
+    read(13,*) luse(i,j)
+  end if
   if(i==nx) then
     i = 0
     j = j + 1
@@ -113,12 +120,19 @@ do k = 1, nx*ny
 end do
 close(11)
 close(12)
+if(nluse==0) then
+  close(13)
+  open(11, file='./input/parameter_land.txt', status='old')
+  do i = 1, nlu
+    read(11,*) nn(i), aa
+  end do
+endif
 dx = xx(2) - xx(1)
 dy = yy(2) - yy(1)
 
 open(11,file='./input/parameter_infil.txt',status='old')
 do i = 1, nc
-  read(11,*) k0(i), psi(i), thi(i), ths(i), nn(i)
+  read(11,*) k0(i), psi(i), thi(i), ths(i)
 end do
 close(11)
 
@@ -245,9 +259,9 @@ subroutine flow
 use coord, only : nx, ny, dx, dy, dz, gl
 use time, only : dt, ww, wout
 use solve_data, only : hs, hsn, hmx, fn, zz, zzn 
-use inp_data, only : k0, psi, thi, ths, nn, fl, qin, raint, slp, ax, ay, rid, ctg
+use inp_data, only : k0, psi, thi, ths, nn, fl, qin, raint, slp, ax, ay, rid, ctg, luse
 implicit none
-integer :: i, j, k, num(2), n, n1
+integer :: i, j, k, num(2), n, n1, n2
 double precision :: h1, h2, grad(2), hh, ff, dt2, dt3, ang
 double precision :: fnn, f1, fo, vv(2), rr
 double precision :: qsx(2), qsy(2), qgx(2), qgy(2)
@@ -262,6 +276,7 @@ n = nint(2.d0/dz)
 do j = 1,ny
   do i = 1, nx
     n1 = ctg(i,j,n)
+    n2 = luse(i,j)
     ! Green Ampt  - - - - - - - - - - - - - - - - - - -
     rr = raint(rid(i,j))
     if(fn(i,j) .ne. 0) then
@@ -314,8 +329,8 @@ do j = 1,ny
         if(hh*grad(2)<0.d0 .or. hs(i+1,j)*grad(2)>0.d0) h2 = 0.5d0*(hh + hs(i+1,j))
       end if
    
-      qsx(1) = - (h1**(5.d0/3.d0))*dsign(1.d0,grad(1))*dsqrt(dabs(grad(1)))/nn(n1)  
-      qsx(2) = - (h2**(5.d0/3.d0))*dsign(1.d0,grad(2))*dsqrt(dabs(grad(2)))/nn(n1)
+      qsx(1) = - (h1**(5.d0/3.d0))*dsign(1.d0,grad(1))*dsqrt(dabs(grad(1)))/nn(n2)  
+      qsx(2) = - (h2**(5.d0/3.d0))*dsign(1.d0,grad(2))*dsqrt(dabs(grad(2)))/nn(n2)
   
       h1 = 0.d0 ; h2 = 0.d0 ; qsy(:) = 0.d0
       if(j==1) then
@@ -335,8 +350,8 @@ do j = 1,ny
         if(hh*grad(2)<0.d0 .or. hs(i,j+1)*grad(2)>0.d0) h2 = 0.5d0*(hh + hs(i,j+1))
       end if
  
-      qsy(1) = - (h1**(5.d0/3.d0))*dsign(1.d0,grad(1))*dsqrt(dabs(grad(1)))/nn(n1)
-      qsy(2) = - (h2**(5.d0/3.d0))*dsign(1.d0,grad(2))*dsqrt(dabs(grad(2)))/nn(n1)
+      qsy(1) = - (h1**(5.d0/3.d0))*dsign(1.d0,grad(1))*dsqrt(dabs(grad(1)))/nn(n2)
+      qsy(2) = - (h2**(5.d0/3.d0))*dsign(1.d0,grad(2))*dsqrt(dabs(grad(2)))/nn(n2)
    
       if(i == 1 ) qsx(1) = min(qsx(1),0.d0)
       if(i == nx) qsx(2) = max(qsx(2),0.d0)
@@ -391,7 +406,7 @@ do j = 1,ny
       if(hsn(i,j)*hsn(i+1,j)>1.d-16) then
         h1 = hsn(i,j) ; h2 = hsn(i+1,j)
         grad(1) = dsqrt(dabs(h2-h1))/dx
-        if(dabs(ax(i+1,j))>ang)  dt2 = min(dt2, (dx**2.d0)*0.5d0*grad(1)*nn(n1)/((h1+h2)*0.5d0)**(5.d0/3.d0))
+        if(dabs(ax(i+1,j))>ang)  dt2 = min(dt2, (dx**2.d0)*0.5d0*grad(1)*nn(n2)/((h1+h2)*0.5d0)**(5.d0/3.d0))
         if(dabs(ax(i+1,j))<=ang) dt3 = min(dt3, 0.7d0*dx/dsqrt(gg*(h1+h2)*0.5d0))
       end if
     end if
@@ -399,7 +414,7 @@ do j = 1,ny
       if(hsn(i,j)*hsn(i,j+1)>1.d-16) then
         h1 = hsn(i,j) ; h2 = hsn(i,j+1)
         grad(1) = dsqrt(dabs(h2-h1))/dy
-        if(dabs(ay(i,j+1))>ang)  dt2 = min(dt2, (dy**2.d0)*0.5d0*grad(1)*nn(n1)/((h1+h2)*0.5d0)**(5.d0/3.d0))
+        if(dabs(ay(i,j+1))>ang)  dt2 = min(dt2, (dy**2.d0)*0.5d0*grad(1)*nn(n2)/((h1+h2)*0.5d0)**(5.d0/3.d0))
         if(dabs(ay(i,j+1))<=ang) dt3 = min(dt3, 0.7d0*dy/dsqrt(gg*(h1+h2)*0.5d0))
       end if
     end if
@@ -429,7 +444,8 @@ write(fname,'(a,i4.4,a4)') trim(adjustl(fname1)),tstep,'.txt'
 open(12, file=fname, status='replace')
 do j = 1,ny
   do i = 1,nx
-    write(12,'(2f10.2,2f8.5)') xx(i), yy(j), zzn(i,j), max(hs(i,j),0.d0)
+    write(12,'(2f10.2,2f9.5)') xx(i), yy(j), zzn(i,j), max(hs(i,j),0.d0)
+    !write(12,'(2f10.2,f9.5)') xx(i), yy(j), zzn(i,j)
   end do
 end do
 close(12)

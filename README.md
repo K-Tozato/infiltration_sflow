@@ -63,10 +63,19 @@ and [Sayama et al. (2012)](https://doi.org/10.1080/02626667.2011.644245).
 <img src="./img/category_image.png" width="40%">
 
 
-
-
   (※) 深さ方向にパラメータが変化する設定にしているが，解析モデルの関係上，計算では深さ2m地点でのパラメータ値を代表値として使用して計算．   
   (※) 深さ方向のパラメータの変化は[斜面安定解析](https://github.com/K-Tozato/3D_slope_stability)で使用される．
+
+**以下の2つについては無くても解析可能**    
+
+- **landuse.txt**  
+  土地利用分類のデータ      
+  要素数（nx-1)×(ny-1）分のデータが並ぶ
+  
+- **parameter_land.txt**
+  土地利用データのパラメータ   
+  1列目はマニングに粗度係数  
+  2列目に粘着力c(kPa)の値（斜面安定解析で使用）   
 
 ### raindata/: 降雨データ(Rainfall data)
 
